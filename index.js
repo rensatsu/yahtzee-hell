@@ -3,10 +3,13 @@ import { createServer } from "node:http";
 import * as dotenv from "dotenv";
 import { Server } from "socket.io";
 import { randomUUID } from "node:crypto";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 dotenv.config();
 
 const listenPort = process.env.HTTP_PORT ?? 7500;
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 const server = createServer(app);
@@ -25,7 +28,8 @@ function randomRoom() {
 };
 
 app.get("/", (req, res) => {
-    res.send("<h1>Hello world</h1>");
+    // res.send("<h1>Hello world</h1>");
+    res.sendFile(__dirname + '/index.html');
 });
 
 server.listen(listenPort, "0.0.0.0", () => {
