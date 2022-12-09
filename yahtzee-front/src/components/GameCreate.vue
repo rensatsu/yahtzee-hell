@@ -1,7 +1,17 @@
 <script setup>
+import { ref } from 'vue';
+
+const isLoading = ref(false);
+
+const emit = defineEmits(["game"]);
+
 function submit() {
-  globalThis.socket.emit("create-room", null, (...args) => {
-    console.log(args);
+  isLoading.value = true;
+
+  globalThis.socket.emit("create-room", null, (_, room) => {
+    console.log("Joining room", room);
+    emit("game", room);
+    isLoading.value = false;
   });
 }
 </script>
@@ -12,7 +22,7 @@ function submit() {
       <h2 class="panel-heading">Host game</h2>
       <form class="panel-body" @submit.prevent="submit">
         <div class="form-group">
-          <button type="submit" class="btn btn-primary btn-block">
+          <button type="submit" class="btn btn-primary btn-block" :disabled="isLoading">
             Create game
           </button>
         </div>

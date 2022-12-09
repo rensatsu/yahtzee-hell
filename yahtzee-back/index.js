@@ -28,8 +28,12 @@ app.use(cors);
 
 const rooms = new Map();
 
+class Player {
+
+}
+
 function randomRoom() {
-    const room = "room-" + randomUUID();
+    const room = randomUUID();
 
     if (rooms.has(room)) {
         return randomRoom();
@@ -56,6 +60,7 @@ io.on("connection", socket => {
 
     socket.on("create-room", (_, callback) => {
         const room = randomRoom();
+        rooms.set(room, {});
         socket.join(room);
         callback("room", room);
     });
@@ -63,10 +68,10 @@ io.on("connection", socket => {
     socket.on("join-room", (room, callback) => {
         if (rooms.has(room)) {
             socket.join(room);
-            callback("room", room);
+            callback(true, room);
             return;
         }
 
-        callback("error", "join-room-error");
+        callback(false, "Room doesn't exist");
     });
 });
