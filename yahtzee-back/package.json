@@ -4,12 +4,13 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "run": "node index.js",
+    "run": "node -r dotenv/config index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Rensatsu",
   "license": "UNLICENSED",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "socket.io": "^4.5.4"
