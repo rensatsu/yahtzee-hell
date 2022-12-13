@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "run": "node -r dotenv/config index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "author": "Rensatsu",
   "license": "UNLICENSED",
@@ -14,5 +14,8 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "socket.io": "^4.5.4"
+  },
+  "devDependencies": {
+    "jest": "^29.3.1"
   }
 }

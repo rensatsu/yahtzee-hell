@@ -28,8 +28,58 @@ app.use(cors);
 
 const rooms = new Map();
 
-class Player {
+const categories = {
+    ones: "Ones",
+    twos: "Twos",
+    threes: "Threes",
+    fours: "Fours",
+    fives: "Fives",
+    sixes: "Sixes",
+    bonus: "Bonus (over 63)",
+    threeOfKind: "Three of a Kind",
+    fourOfKind: "Three of a Kind",
+    fullHouse: "Full House",
+    smallStraight: "Small Straight",
+    largeStraight: "Large Straight",
+    yahtzee: "Yahtzee",
+    chance: "Chance",
+}
 
+class Player {
+    #name;
+    #categories;
+
+    addCategory(category, points) {
+        this.#categories[category] = points;
+    }
+
+    getName() {
+        return this.#name;
+    }
+
+    getCategories() {
+        return this.#categories;
+    }
+
+    constructor(name) {
+        this.#name = name;
+        this.#categories = {
+            ones: null,
+            twos: null,
+            threes: null,
+            fours: null,
+            fives: null,
+            sixes: null,
+            bonus: false,
+            threeOfKind: null,
+            fourOfKind,
+            fullHouse: null,
+            smallStraight: null,
+            largeStraight: null,
+            yahtzee: null,
+            chance: null,
+        }
+    }
 }
 
 function randomRoom() {
@@ -43,9 +93,9 @@ function randomRoom() {
 }
 
 app.get("/", (req, res) => {
-    // if (env.FRONT_URL) {
-    //     res.redirect(env.FRONT_URL);
-    // }
+    if (env.FRONT_URL) {
+        res.redirect(env.FRONT_URL);
+    }
 
     res.statusCode = 400;
     res.send("Bad request");
