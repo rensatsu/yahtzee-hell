@@ -3,7 +3,9 @@ const FIXED_POINTS = {
     smallStraight: 30,
     largeStraight: 40,
     yahtzee: 50,
-    yahtzeeBonus: 100
+    yahtzeeBonus: 100,
+    upperBonusThreshold: 63,
+    upperBonus: 35,
 };
 
 /**
@@ -124,53 +126,28 @@ function calculateStraight(dices, amount, result) {
  * @param {boolean} [isJoker=false] Joker is used when there are already points in Yahtzee category
  * @returns
  */
-function calculatePoints(category, dices, isJoker = false) {
-    switch (category) {
-        case categories.ones:
-            return calculateIdenticalSum(dices, 1);
-
-        case categories.twos:
-            return calculateIdenticalSum(dices, 2);
-
-        case categories.threes:
-            return calculateIdenticalSum(dices, 3);
-
-        case categories.fours:
-            return calculateIdenticalSum(dices, 4);
-
-        case categories.fives:
-            return calculateIdenticalSum(dices, 5);
-
-        case categories.sixes:
-            return calculateIdenticalSum(dices, 6);
-
-        case categories.threeOfKind:
-            return isJoker ? calculateSum(dices) : calculateXofAKind(dices, 3);
-
-        case categories.fourOfKind:
-            return isJoker ? calculateSum(dices) : calculateXofAKind(dices, 4);
-
-        case categories.fullHouse:
-            return isJoker ? FIXED_POINTS.fullHouse : calculateFullHouse(dices);
-
-        case categories.smallStraight:
-            return isJoker
-                ? FIXED_POINTS.smallStraight
-                : calculateStraight(dices, 4, FIXED_POINTS.smallStraight);
-
-        case categories.largeStraight:
-            return isJoker
-                ? FIXED_POINTS.largeStraight
-                : calculateStraight(dices, 5, FIXED_POINTS.largeStraight);
-
-        case categories.yahtzee:
-            return isJoker
-                ? FIXED_POINTS.yahtzeeBonus
-                : calculateXofAKind(dices, 5, FIXED_POINTS.yahtzee);
-
-        case categories.chance:
-            return calculateSum(dices);
-    }
+function calculatePoints(dices, isJoker = false) {
+    return {
+        ones: calculateIdenticalSum(dices, 1),
+        twos: calculateIdenticalSum(dices, 2),
+        threes: calculateIdenticalSum(dices, 3),
+        fours: calculateIdenticalSum(dices, 4),
+        fives: calculateIdenticalSum(dices, 5),
+        sixes: calculateIdenticalSum(dices, 6),
+        threeOfKind: isJoker ? calculateSum(dices) : calculateXofAKind(dices, 3),
+        fourOfKind: isJoker ? calculateSum(dices) : calculateXofAKind(dices, 4),
+        fullHouse: isJoker ? FIXED_POINTS.fullHouse : calculateFullHouse(dices),
+        smallStraight: isJoker
+            ? FIXED_POINTS.smallStraight
+            : calculateStraight(dices, 4, FIXED_POINTS.smallStraight),
+        largeStraight: isJoker
+            ? FIXED_POINTS.largeStraight
+            : calculateStraight(dices, 5, FIXED_POINTS.largeStraight),
+        yahtzee: isJoker
+            ? FIXED_POINTS.yahtzeeBonus
+            : calculateXofAKind(dices, 5, FIXED_POINTS.yahtzee),
+        chance: calculateSum(dices)
+    };
 }
 
 export {
