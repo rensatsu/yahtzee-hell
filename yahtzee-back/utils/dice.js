@@ -26,4 +26,11 @@ export class Dice {
     setKeep(keep) {
         this.#keep = keep;
     }
+
+    toJSON() {
+        return {
+            value: this.#value,
+            keep: this.#keep,
+        };
+    }
 }

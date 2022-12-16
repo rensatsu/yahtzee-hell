@@ -1,28 +1,49 @@
 <script setup>
 import { ref } from "vue";
-
-const roomCode = ref(null);
+import { useGameStore } from "../stores/game.js";
+import { db } from "../utils/db";
 
 const isLoading = ref(false);
 const error = ref(null);
 
 const emit = defineEmits(["game"]);
 
-function submit() {
+const game = useGameStore();
+
+async function submit() {
   isLoading.value = true;
   error.value = null;
 
-  globalThis.socket.emit("join-room", roomCode.value, (_, result, room) => {
-    console.log("Joining room", roomCode.value);
-    isLoading.value = false;
+  try {
+    console.log("Joining room", game.room, game.username);
 
-    if (result === false) {
-      console.log("Error joining room", roomCode.value);
-      error.value = room ?? "Unknown error";
-    } else {
-      emit("game", roomCode.value);
+    const room = await db.get(game.room);
+
+    const player = {
+      username: game.username,
+      categories: {
+        ones: null,
+        twos: null,
+        threes: null,
+      }
+    };
+
+    if (game.username in room.players) {
+      throw new Error("This username is already in use");
     }
-  });
+
+    room.players[game.username] = player;
+
+    await db.put(room);
+
+    console.log("Joined room", game.room, game.username);
+    isLoading.value = false;
+    game.game = room;
+    game.isInGame = true;
+  } catch (e) {
+    console.log("Error joining room", { e, room: game.room });
+    error.value = e?.error === "not_found" ? "Room is not found" : (e ?? "Unknown error");
+  }
 }
 </script>
 
@@ -32,9 +53,17 @@ function submit() {
       <h2 class="panel-heading">Join game</h2>
       <form class="panel-body" @submit.prevent="submit">
         <div v-if="error !== null" class="alert alert-danger">{{ error }}</div>
+
+        <div class="form-group">
+          <label for="inp-username-join">Username</label>
+          <input type="text" class="form-control" id="inp-username-join" name="username" placeholder="Enter username"
+            minlength="1" required v-model="game.username" />
+        </div>
+
         <div class="form-group">
           <label for="inp-text">Room code</label>
-          <input type="text" id="inp-text" class="form-control" placeholder="Enter room code" v-model="roomCode">
+          <input type="text" id="inp-text" class="form-control" placeholder="Enter room code" required
+            v-model="game.room">
         </div>
 
         <div class="form-group">

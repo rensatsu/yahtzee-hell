@@ -1,25 +1,16 @@
-import { Dice } from "./dice";
-import { FIXED_POINTS } from "./scoring";
+
+import { FIXED_POINTS } from "./scoring.js";
 
 const MAX_ROLLS = 3;
 
 export class Player {
+    #id;
     #name;
     #categories;
-    #dices;
-    #rollStep;
 
-    constructor(name) {
+    constructor(id, name) {
+        this.#id = id;
         this.#name = name;
-        this.#rollStep = 0;
-
-        this.#dices = [
-            new Dice(1),
-            new Dice(2),
-            new Dice(3),
-            new Dice(4),
-            new Dice(5),
-        ];
 
         this.#categories = {
             ones: null,
@@ -30,7 +21,7 @@ export class Player {
             sixes: null,
             upperBonus: false,
             threeOfKind: null,
-            fourOfKind,
+            fourOfKind: null,
             fullHouse: null,
             smallStraight: null,
             largeStraight: null,
@@ -48,6 +39,10 @@ export class Player {
             this.#categories.fives +
             this.#categories.sixes
         );
+    }
+
+    getId() {
+        return this.#id;
     }
 
     getTotalSum() {
@@ -83,23 +78,12 @@ export class Player {
         return this.#categories;
     }
 
-    getDices() {
-        return this.#dices;
-    }
-
-    setDiceKeep(index, keep) {
-        this.#dices[index].setKeep(keep);
-    }
-
-    roll() {
-        if (this.#rollStep >= MAX_ROLLS) {
-            throw new Error("Max rolls exceeded");
-        }
-
-        this.#rollStep += 1;
-        for (const dice of this.#dices) {
-            if (dice.getKeep()) continue;
-            dice.setValue(generateDice());
+    toJSON() {
+        return {
+            id: this.getId(),
+            categories: this.getCategories(),
+            name: this.getName(),
+            totalSum: this.getTotalSum(),
         }
     }
 }
