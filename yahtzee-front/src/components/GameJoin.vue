@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import { useGameStore } from "../stores/game.js";
+import { categories, useGameStore } from "../stores/game.js";
 import { db } from "../utils/db";
 
 const isLoading = ref(false);
@@ -21,17 +21,15 @@ async function submit() {
 
     const player = {
       username: game.username,
-      categories: {
-        ones: null,
-        twos: null,
-        threes: null,
-      }
+      isRoomOwner: false,
+      categories: { ...categories },
     };
 
     if (game.username in room.players) {
       throw new Error("This username is already in use");
     }
 
+    game.player = player;
     room.players[game.username] = player;
 
     await db.put(room);

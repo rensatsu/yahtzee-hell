@@ -1,4 +1,5 @@
 <script setup>
+import { ref, computed } from "vue";
 import { useGameStore } from "../stores/game.js";
 import { db } from "../utils/db.js";
 const game = useGameStore();
@@ -23,6 +24,28 @@ db.changes({
   since: "now",
   live: true
 }).on("change", updateState);
+
+const categoriesDescription = ref({
+  upperPart: {
+    ones: "Ones",
+    twos: "Twos",
+    threes: "Threes",
+    fours: "Fours",
+    fives: "Fives",
+    sixes: "Sixes",
+  },
+  bonus: "Bonus (63 points)",
+  bottomPart: {
+    threeOfKind: "Three of a Kind",
+    fourOfKind: "Four of a Kind",
+    fullHouse: "Full House",
+    smallStraight: "Small Straight",
+    largeStraight: "Large Straight",
+    yahtzee: "Yahtzee",
+    chance: "Chance",
+  },
+  total: "Total",
+});
 </script>
 
 <style lang="scss">
@@ -38,11 +61,36 @@ table {
     color: var(--color-background);
   }
 
-  th, td {
+  tr.total td,
+  tr.section td {
+    background-color: var(--color-primary);
+    color: var(--color-muted);
+  }
+
+  tr.section td {
+    text-align: left;
+  }
+
+  td.active {
+    background-color: var(--color-primary);
+    color: var(--color-background);
+  }
+
+  td.selectable {
+    cursor: pointer;
+  }
+
+  td.unselectable {
+    cursor: not-allowed;
+  }
+
+  th,
+  td {
     padding: 5px 10px;
   }
 
-  th + th, td + td {
+  th+th,
+  td+td {
     border-left: 1px solid var(--control-color-border);
   }
 
@@ -102,17 +150,42 @@ table {
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td class="left">Ones</td>
-        <td v-for="(player, id) in game.game.players" :key="id">{{ player.categories.ones }}</td>
+      <tr class="section">
+        <td :colspan="Object.keys(game.game.players).length + 1">Upper part</td>
+      </tr>
+      <tr v-for="(description, category) in categoriesDescription.upperPart" :key="category">
+        <td class="left">{{ description }}</td>
+        <td v-for="(player, id) in game.game.players" :key="id" :class="{
+          'active': player.categories[category] !== null,
+          'selectable': game.game.isStarted && game.game.currentPlayer.username === player.username && player.categories[category] === null,
+          'unselectable': !game.game.isStarted || (game.game.isStarted && game.game.currentPlayer.username === player.username && player.categories[category] !== null)
+        }">{{ player.categories[category] }}</td>
       </tr>
       <tr>
-        <td class="left">Twos</td>
-        <td v-for="(player, id) in game.game.players" :key="id">{{ player.categories.twos }}</td>
+        <td class="left">{{ categoriesDescription.bonus }}</td>
+        <td
+          v-for="(_, id) in game.game.players"
+          :key="id"
+          :class="{ active: game.getBonusPoints[id] >= 63 }"
+        >
+          <template v-if="game.getBonusPoints[id] < 63">
+            {{ game.getBonusPoints[id] }} / 63
+          </template>
+          <template v-else>
+            35
+          </template>
+        </td>
       </tr>
-      <tr>
-        <td class="left">Threes</td>
-        <td v-for="(player, id) in game.game.players" :key="id">{{ player.categories.threes }}</td>
+      <tr class="section">
+        <td :colspan="Object.keys(game.game.players).length + 1">Bottom part</td>
+      </tr>
+      <!-- bottom part -->
+      <tr class="total">
+        <td class="left">{{ categoriesDescription.total }}</td>
+        <td
+          v-for="(_, id) in game.game.players"
+          :key="id"
+        >{{ game.getTotalPoints[id] }}</td>
       </tr>
     </tbody>
   </table>
@@ -122,8 +195,16 @@ table {
     </template>
   </div>
   <div class="roll">
-    <button class="btn btn-large btn-primary btn-block">
+    <button type="button" class="btn btn-large btn-primary btn-block" v-if="game.game.isStarted">
       Roll 0/3
+    </button>
+    <button type="button" class="btn btn-large btn-primary btn-block"
+      v-if="game.player.isRoomOwner && !game.game.isStarted">
+      Start
+    </button>
+    <button type="button" class="btn btn-large btn-primary btn-block"
+      v-if="!game.player.isRoomOwner && !game.game.isStarted" disabled>
+      Waiting for host to start game...
     </button>
   </div>
 </template>
