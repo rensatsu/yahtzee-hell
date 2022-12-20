@@ -165,7 +165,7 @@ table {
       <tr>
         <th class="left">Room</th>
         <template v-for="(player, id) in game.game.players" :key="id">
-          <th :class="{'active': id === game.game.currentPlayerIndex}">{{ player.username }}</th>
+          <th :class="{ active: id === game.game.currentPlayerIndex }">{{ player.username }}</th>
         </template>
       </tr>
     </thead>
@@ -176,18 +176,14 @@ table {
       <tr v-for="(description, category) in categoriesDescription.upperPart" :key="category">
         <td class="left">{{ description }}</td>
         <td v-for="(player, id) in game.game.players" :key="id" :class="{
-          'active': player.categories[category] !== null,
-          'selectable': game.isMyTurn() && player.categories[category] === null,
-          'unselectable': !game.game.isStarted || (game.isMyTurn() && player.categories[category] !== null)
+          active: player.categories[category] !== null,
+          selectable: game.isMyTurn() && player.categories[category] === null,
+          unselectable: !game.game.isStarted || (game.isMyTurn() && player.categories[category] !== null)
         }">{{ player.categories[category] }}</td>
       </tr>
       <tr>
         <td class="left">{{ categoriesDescription.bonus }}</td>
-        <td
-          v-for="(_, id) in game.game.players"
-          :key="id"
-          :class="{ active: game.getBonusPoints[id] >= 63 }"
-        >
+        <td v-for="(_, id) in game.game.players" :key="id" :class="{ active: game.getBonusPoints[id] >= 63 }">
           <template v-if="game.getBonusPoints[id] < 63">
             {{ game.getBonusPoints[id] }} / 63
           </template>
@@ -202,24 +198,22 @@ table {
       <!-- bottom part -->
       <tr class="total">
         <td class="left">{{ categoriesDescription.total }}</td>
-        <td
-          v-for="(_, id) in game.game.players"
-          :key="id"
-        >{{ game.getTotalPoints[id] }}</td>
+        <td v-for="(_, id) in game.game.players" :key="id">{{ game.getTotalPoints[id] }}</td>
       </tr>
     </tbody>
   </table>
   <div class="dices">
     <template v-for="(dice, index) in game.game.dices" :key="index">
-      <Dice :keep="dice.keep" :value="dice.value" :class="['dice', dice.keep ? 'dice-keep' : '']" @click="toggleDice(index)"></Dice>
+      <Dice :keep="dice.keep" :value="dice.value" :class="['dice', dice.keep ? 'dice-keep' : '']"
+        @click="toggleDice(index)"></Dice>
     </template>
   </div>
   <div class="roll">
-    <button type="button" class="btn btn-large btn-primary btn-block" v-if="game.game.isStarted" :disabled="!game.isMyTurn()">
+    <button type="button" class="btn btn-large btn-primary btn-block" v-if="game.game.isStarted"
+      :disabled="!game.isMyTurn()">
       Roll {{ game.game.rollStep }}/3
     </button>
-    <button type="button" class="btn btn-large btn-primary btn-block"
-      @click="startGame"
+    <button type="button" class="btn btn-large btn-primary btn-block" @click="startGame"
       v-if="game.player.isRoomOwner && !game.game.isStarted">
       Start
     </button>
