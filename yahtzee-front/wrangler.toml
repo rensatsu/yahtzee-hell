@@ -1,0 +1,6 @@
+name = "ren-yahtzee"
+compatibility_date = "2022-12-20"
+workers_dev = false
+
+[build]
+command = "npm run build"
