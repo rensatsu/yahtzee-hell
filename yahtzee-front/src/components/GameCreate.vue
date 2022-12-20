@@ -21,7 +21,7 @@ async function submit() {
   };
 
   game.player = player;
-  game.game.players[game.username] = player;
+  game.game.players.push(player);
 
   const result = await db.post(game.game);
   if (!result.ok) {

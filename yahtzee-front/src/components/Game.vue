@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { useGameStore } from "../stores/game.js";
 import { db } from "../utils/db.js";
+import Dice from "./Dice.vue";
 const game = useGameStore();
 
 function copy(value) {
@@ -16,7 +17,23 @@ async function updateState() {
   game.game = room;
 }
 
+async function startGame() {
+  if (!game.player.isRoomOwner) {
+    console.warn("Non-owner attempted to start game");
+    return;
+  }
+
+  const room = await db.get(game.room);
+  game.game = room;
+  game.game.isStarted = true;
+  game.game.round += 1;
+  game.game.rollStep = 0;
+  game.setNextPlayer();
+  await db.put(room);
+}
+
 function toggleDice(index) {
+  if (game.player.username !== game.game.currentPlayer) return;
   game.game.dices[index].keep = !game.game.dices[index].keep;
 }
 
@@ -71,6 +88,11 @@ table {
     text-align: left;
   }
 
+  th.active {
+    background-color: var(--color-success);
+    color: var(--color-success-bg);
+  }
+
   td.active {
     background-color: var(--color-primary);
     color: var(--color-background);
@@ -120,10 +142,6 @@ table {
   margin: 1rem 0;
 
   .dice {
-    font-size: 64px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     aspect-ratio: 1;
     border: 1px solid var(--control-color-border);
     cursor: pointer;
@@ -146,19 +164,21 @@ table {
     <thead>
       <tr>
         <th class="left">Room</th>
-        <th v-for="(player, id) in game.game.players" :key="id">{{ player.username }}</th>
+        <template v-for="(player, id) in game.game.players" :key="id">
+          <th :class="{'active': id === game.game.currentPlayerIndex}">{{ player.username }}</th>
+        </template>
       </tr>
     </thead>
     <tbody>
       <tr class="section">
-        <td :colspan="Object.keys(game.game.players).length + 1">Upper part</td>
+        <td :colspan="game.game.players.length + 1">Upper part</td>
       </tr>
       <tr v-for="(description, category) in categoriesDescription.upperPart" :key="category">
         <td class="left">{{ description }}</td>
         <td v-for="(player, id) in game.game.players" :key="id" :class="{
           'active': player.categories[category] !== null,
-          'selectable': game.game.isStarted && game.game.currentPlayer.username === player.username && player.categories[category] === null,
-          'unselectable': !game.game.isStarted || (game.game.isStarted && game.game.currentPlayer.username === player.username && player.categories[category] !== null)
+          'selectable': game.isMyTurn() && player.categories[category] === null,
+          'unselectable': !game.game.isStarted || (game.isMyTurn() && player.categories[category] !== null)
         }">{{ player.categories[category] }}</td>
       </tr>
       <tr>
@@ -191,14 +211,15 @@ table {
   </table>
   <div class="dices">
     <template v-for="(dice, index) in game.game.dices" :key="index">
-      <div :class="['dice', dice.keep ? 'dice-keep' : '']" @click="toggleDice(index)">{{ dice.value }}</div>
+      <Dice :keep="dice.keep" :value="dice.value" :class="['dice', dice.keep ? 'dice-keep' : '']" @click="toggleDice(index)"></Dice>
     </template>
   </div>
   <div class="roll">
-    <button type="button" class="btn btn-large btn-primary btn-block" v-if="game.game.isStarted">
-      Roll 0/3
+    <button type="button" class="btn btn-large btn-primary btn-block" v-if="game.game.isStarted" :disabled="!game.isMyTurn()">
+      Roll {{ game.game.rollStep }}/3
     </button>
     <button type="button" class="btn btn-large btn-primary btn-block"
+      @click="startGame"
       v-if="game.player.isRoomOwner && !game.game.isStarted">
       Start
     </button>

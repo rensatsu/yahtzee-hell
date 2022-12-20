@@ -30,7 +30,7 @@ async function submit() {
     }
 
     game.player = player;
-    room.players[game.username] = player;
+    room.players.push(player);
 
     await db.put(room);
 
