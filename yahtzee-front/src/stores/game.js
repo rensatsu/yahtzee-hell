@@ -17,6 +17,14 @@ export const categories = {
     chance: null
 };
 
+const defaultDices = [
+    { value: 1, keep: false },
+    { value: 1, keep: false },
+    { value: 1, keep: false },
+    { value: 1, keep: false },
+    { value: 1, keep: false }
+];
+
 export const useGameStore = defineStore("game", {
     state: () => {
         return {
@@ -32,13 +40,7 @@ export const useGameStore = defineStore("game", {
                 isStarted: false,
                 players: [],
                 currentPlayerIndex: null,
-                dices: [
-                    { value: 1, keep: false },
-                    { value: 2, keep: false },
-                    { value: 3, keep: false },
-                    { value: 4, keep: false },
-                    { value: 5, keep: false }
-                ],
+                dices: [...defaultDices],
                 rollStep: 0,
                 round: 0
             })
@@ -93,9 +95,12 @@ export const useGameStore = defineStore("game", {
             this.game.currentPlayerIndex =
                 this.game.currentPlayerIndex === null
                     ? 0
-                    : this.game.currentPlayerIndex + 1 > this.game.players.length
+                    : this.game.currentPlayerIndex >= this.game.players.length - 1
                     ? 0
-                    : this.game.currentPlayerIndex + 1;
+                        : this.game.currentPlayerIndex + 1;
+
+            this.game.dices = [...defaultDices];
+            this.game.rollStep = 0;
 
             return this.getPlayer(this.game.currentPlayerIndex);
         },

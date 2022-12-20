@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useGameStore } from "../stores/game.js";
 import { db } from "../utils/db.js";
+import { calculatePoints } from "../utils/scoring.js";
 import Dice from "./Dice.vue";
 const game = useGameStore();
 
@@ -29,12 +30,63 @@ async function startGame() {
   game.game.round += 1;
   game.game.rollStep = 0;
   game.setNextPlayer();
-  await db.put(room);
+  await db.put(game.game);
 }
 
-function toggleDice(index) {
-  if (game.player.username !== game.game.currentPlayer) return;
+async function toggleDice(index) {
+  if (!game.isMyTurn() || game.game.rollStep === 0) return;
   game.game.dices[index].keep = !game.game.dices[index].keep;
+  await db.put(game.game);
+}
+
+async function roll() {
+  if (game.game.rollStep >= 3) {
+    console.warn("Roll steps exceeded");
+    return;
+  }
+
+  game.game.rollStep += 1;
+
+  game.game.dices.map((dice) => {
+    if (dice.keep) return dice;
+    dice.value = ~~(Math.random() * 6 + 1);
+    return dice;
+  });
+
+  await db.put(game.game);
+}
+
+function canSelectCategory(player, category) {
+  if (category === "yahtzee") {
+    return player.categories[category] !== 0;
+  } else {
+    return player.categories[category] === null;
+  }
+}
+
+async function selectCategory(player, category) {
+  if (!game.isMyTurn()) return;
+  if (game.game.rollStep === 0) {
+    console.warn("You have to roll at least once", { category, player });
+    return;
+  }
+
+  if (!canSelectCategory(player, category)) {
+    console.warn("Cannot select category", { category, player });
+    return;
+  }
+
+  const points = calculatePoints(getDiceValues(), player.categories);
+
+  player.categories[category] = (player.categories[category] ?? 0) + points[category];
+
+  game.setNextPlayer();
+
+  await db.put(game.game);
+}
+
+function getDiceValues() {
+  return game.game.dices.map(d => d.value);
 }
 
 db.changes({
@@ -142,13 +194,14 @@ table {
   margin: 1rem 0;
 
   .dice {
+    --dice-dot-color: var(--color-primary);
     aspect-ratio: 1;
     border: 1px solid var(--control-color-border);
     cursor: pointer;
 
-    &.dice-keep {
+    &.keep {
+      --dice-dot-color: var(--color-background);
       background: var(--color-primary);
-      color: var(--color-background);
     }
   }
 }
@@ -179,7 +232,16 @@ table {
           active: player.categories[category] !== null,
           selectable: game.isMyTurn() && player.categories[category] === null,
           unselectable: !game.game.isStarted || (game.isMyTurn() && player.categories[category] !== null)
-        }">{{ player.categories[category] }}</td>
+        }" @click="selectCategory(player, category)">
+          <template
+            v-if="player.categories[category] === null && game.game.rollStep !== 0 && id === game.game.currentPlayerIndex">
+            {{ calculatePoints(getDiceValues(), player.categories)[category]
+            }}
+          </template>
+          <template v-else>
+            {{ player.categories[category] }}
+          </template>
+        </td>
       </tr>
       <tr>
         <td class="left">{{ categoriesDescription.bonus }}</td>
@@ -204,13 +266,13 @@ table {
   </table>
   <div class="dices">
     <template v-for="(dice, index) in game.game.dices" :key="index">
-      <Dice :keep="dice.keep" :value="dice.value" :class="['dice', dice.keep ? 'dice-keep' : '']"
-        @click="toggleDice(index)"></Dice>
+      <Dice :keep="dice.keep" :value="dice.value" :class="{ dice: true, keep: dice.keep }" @click="toggleDice(index)">
+      </Dice>
     </template>
   </div>
   <div class="roll">
-    <button type="button" class="btn btn-large btn-primary btn-block" v-if="game.game.isStarted"
-      :disabled="!game.isMyTurn()">
+    <button type="button" class="btn btn-large btn-primary btn-block" v-if="game.game.isStarted" @click="roll"
+      :disabled="!game.isMyTurn() || game.game.rollStep >= 3">
       Roll {{ game.game.rollStep }}/3
     </button>
     <button type="button" class="btn btn-large btn-primary btn-block" @click="startGame"

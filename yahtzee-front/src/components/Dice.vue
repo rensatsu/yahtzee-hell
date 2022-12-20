@@ -13,14 +13,13 @@ const emit = defineEmits(["click"]);
   .dot {
     display: flex;
     justify-self: center;
-    border: 1px solid transparent;
     border-radius: 50%;
     width: 80%;
     height: 80%;
 
     &.filled {
-      border: 1px solid var(--color-primary);
-      background-color: var(--color-primary);
+      --color: var(--dice-dot-color, --color-primary);
+      background-color: var(--color);
     }
   }
 }
