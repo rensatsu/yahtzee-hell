@@ -10,6 +10,7 @@ export const categories = {
     sixes: null,
     threeOfKind: null,
     fourOfKind: null,
+    twoPairs: null,
     fullHouse: null,
     smallStraight: null,
     largeStraight: null,

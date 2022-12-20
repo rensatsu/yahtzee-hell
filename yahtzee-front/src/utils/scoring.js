@@ -1,4 +1,5 @@
 const FIXED_POINTS = {
+    twoPairs: 10,
     fullHouse: 25,
     smallStraight: 30,
     largeStraight: 40,
@@ -39,6 +40,26 @@ function calculateXofAKind(dices, amountOfKind, customResult = null) {
 
     if (items !== undefined) {
         return customResult ?? calculateSum(dices);
+    } else {
+        return 0;
+    }
+}
+
+/**
+ * Calculate X Pairs combination.
+ *
+ * @param {Array<number>} dices
+ * @param {number} pairs Amount of pairs
+ * @param {number} result Points if there is a combination
+ * @returns {number} 0 if there is no combination or points otherwise
+ */
+function calculateXPairs(dices, pairs, result = null) {
+    const res = getDicesOccurrences(dices);
+
+    const items = Object.values(res).filter(e => e === 2);
+
+    if (items.length >= pairs) {
+        return result;
     } else {
         return 0;
     }
@@ -138,6 +159,9 @@ function calculatePoints(dices, categories) {
         sixes: calculateIdenticalSum(dices, 6),
         threeOfKind: isJoker ? calculateSum(dices) : calculateXofAKind(dices, 3),
         fourOfKind: isJoker ? calculateSum(dices) : calculateXofAKind(dices, 4),
+        twoPairs: isJoker
+            ? FIXED_POINTS.twoPairs
+            : calculateXPairs(dices, 2, FIXED_POINTS.twoPairs),
         fullHouse: isJoker ? FIXED_POINTS.fullHouse : calculateFullHouse(dices),
         smallStraight: isJoker
             ? FIXED_POINTS.smallStraight

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onBeforeUnmount } from "vue";
 import { useGameStore } from "../stores/game.js";
 import { db } from "../utils/db.js";
 import { calculatePoints } from "../utils/scoring.js";
@@ -7,17 +7,18 @@ import Dice from "./Dice.vue";
 const game = useGameStore();
 
 const isRolling = ref(false);
+const isDiceToggling = ref(false);
 
 function copy(value) {
   navigator.clipboard.writeText(value);
 }
 
 async function updateState() {
-  console.log("updateState", { ...arguments });
   if (!game.isInGame || game.room === null) return;
 
-  const room = await db.get(game.room);
+  const room = await db.get(game.room, { latest: true });
   game.game = room;
+  return room;
 }
 
 async function startGame() {
@@ -36,9 +37,12 @@ async function startGame() {
 }
 
 async function toggleDice(index) {
+  if (isDiceToggling.value) return;
   if (!game.isMyTurn() || game.game.rollStep === 0) return;
+  isDiceToggling.value = true;
   game.game.dices[index].keep = !game.game.dices[index].keep;
-  await db.put(game.game);
+  await db.put(game.game).catch(async () => { await updateState(); });
+  isDiceToggling.value = false;
 }
 
 async function roll() {
@@ -100,10 +104,14 @@ function getDiceValues() {
   return game.game.dices.map(d => d.value);
 }
 
-db.changes({
+const changesListener = db.changes({
   since: "now",
-  live: true
+  live: true,
 }).on("change", updateState);
+
+onBeforeUnmount(() => {
+  changesListener.cancel();
+});
 
 const categoriesDescription = ref({
   upperPart: {
@@ -118,6 +126,7 @@ const categoriesDescription = ref({
   bottomPart: {
     threeOfKind: "Three of a Kind",
     fourOfKind: "Four of a Kind",
+    twoPairs: "Two Pairs",
     fullHouse: "Full House",
     smallStraight: "Small Straight",
     largeStraight: "Large Straight",
@@ -210,6 +219,10 @@ table {
     border: 1px solid var(--control-color-border);
     cursor: pointer;
 
+    &.waiting {
+      opacity: 0.5;
+    }
+
     &.keep {
       --dice-dot-color: var(--color-background);
       background: var(--color-primary);
@@ -246,8 +259,7 @@ table {
         }" @click="selectCategory(player, category)">
           <template
             v-if="player.categories[category] === null && game.game.rollStep !== 0 && id === game.game.currentPlayerIndex">
-            {{ calculatePoints(getDiceValues(), player.categories)[category]
-            }}
+            {{ calculatePoints(getDiceValues(), player.categories)[category] }}
           </template>
           <template v-else>
             {{ player.categories[category] }}
@@ -268,7 +280,22 @@ table {
       <tr class="section">
         <td :colspan="Object.keys(game.game.players).length + 1">Bottom part</td>
       </tr>
-      <!-- bottom part -->
+      <tr v-for="(description, category) in categoriesDescription.bottomPart" :key="category">
+        <td class="left">{{ description }}</td>
+        <td v-for="(player, id) in game.game.players" :key="id" :class="{
+          active: player.categories[category] !== null,
+          selectable: game.isMyTurn() && player.categories[category] === null,
+          unselectable: !game.game.isStarted || (game.isMyTurn() && player.categories[category] !== null)
+        }" @click="selectCategory(player, category)">
+          <template
+            v-if="player.categories[category] === null && game.game.rollStep !== 0 && id === game.game.currentPlayerIndex">
+            {{ calculatePoints(getDiceValues(), player.categories)[category] }}
+          </template>
+          <template v-else>
+            {{ player.categories[category] }}
+          </template>
+        </td>
+      </tr>
       <tr class="total">
         <td class="left">{{ categoriesDescription.total }}</td>
         <td v-for="(_, id) in game.game.players" :key="id">{{ game.getTotalPoints[id] }}</td>
@@ -277,7 +304,8 @@ table {
   </table>
   <div class="dices">
     <template v-for="(dice, index) in game.game.dices" :key="index">
-      <Dice :keep="dice.keep" :value="dice.value" :class="{ dice: true, keep: dice.keep }" @click="toggleDice(index)">
+      <Dice :keep="dice.keep" :value="dice.value" :class="{ dice: true, keep: dice.keep, waiting: isDiceToggling }"
+        @click="toggleDice(index)">
       </Dice>
     </template>
   </div>
