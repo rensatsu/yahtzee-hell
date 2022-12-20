@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "wrangler:dev": "wrangler pages dev dist --port=7503 --compatibility-date=2022-12-20",
-    "wrangler:publish": "wrangler pages publish dist"
+    "wrangler:publish": "npm run build && wrangler pages publish dist"
   },
   "dependencies": {
     "events": "^3.3.0",
