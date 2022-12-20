@@ -21,13 +21,16 @@ async function submit() {
   };
 
   game.player = player;
-  game.game.players.push(player);
+  game.game.players = [player];
 
-  const result = await db.post(game.game);
-  if (!result.ok) {
-    console.error({ ...result });
+  const result = await db.post(game.game).catch(e => {
+    console.error(e);
+  });
+
+  if (!result?.ok) {
     error.value = "Unable to create a room";
-    throw new Error("Unable to create a room");
+    isLoading.value = false;
+    return;
   }
 
   const roomId = result.id;

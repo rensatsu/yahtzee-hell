@@ -6,6 +6,8 @@ import { calculatePoints } from "../utils/scoring.js";
 import Dice from "./Dice.vue";
 const game = useGameStore();
 
+const isRolling = ref(false);
+
 function copy(value) {
   navigator.clipboard.writeText(value);
 }
@@ -45,13 +47,22 @@ async function roll() {
     return;
   }
 
-  game.game.rollStep += 1;
+  isRolling.value = true;
 
-  game.game.dices.map((dice) => {
-    if (dice.keep) return dice;
-    dice.value = ~~(Math.random() * 6 + 1);
-    return dice;
+  const rolledDices = await fetch(import.meta.env.VITE_API + "/dice", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(game.game.dices),
   });
+
+  if (!rolledDices?.ok) {
+    isRolling.value = false;
+    throw new Error("Unable to roll dice");
+  }
+
+  game.game.rollStep += 1;
+  game.game.dices = await rolledDices.json();
+  isRolling.value = false;
 
   await db.put(game.game);
 }
@@ -272,7 +283,7 @@ table {
   </div>
   <div class="roll">
     <button type="button" class="btn btn-large btn-primary btn-block" v-if="game.game.isStarted" @click="roll"
-      :disabled="!game.isMyTurn() || game.game.rollStep >= 3">
+      :disabled="!game.isMyTurn() || game.game.rollStep >= 3 || isRolling">
       Roll {{ game.game.rollStep }}/3
     </button>
     <button type="button" class="btn btn-large btn-primary btn-block" @click="startGame"
