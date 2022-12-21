@@ -42,6 +42,10 @@ async function submit() {
       throw new Error("This username is already in use");
     }
 
+    if (room.isStarted) {
+      throw new Error("Unable to join game that already started");
+    }
+
     game.player = player;
     room.players.push(player);
 
