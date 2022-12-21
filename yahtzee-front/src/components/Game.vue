@@ -4,14 +4,11 @@ import { useGameStore } from "../stores/game.js";
 import { db } from "../utils/db.js";
 import { calculatePoints, FIXED_POINTS } from "../utils/scoring.js";
 import Dice from "./Dice.vue";
+import RoomInfo from "./RoomInfo.vue";
 const game = useGameStore();
 
 const isRolling = ref(false);
 const isDiceToggling = ref(false);
-
-function copy(value) {
-  navigator.clipboard.writeText(value);
-}
 
 async function updateState(force = false) {
   // skip updates when there is no active game
@@ -228,8 +225,8 @@ table {
 .dices {
   display: grid;
   grid-template: auto / repeat(5, 1fr);
-  gap: .5rem;
-  margin: 1rem 0;
+  gap: .75rem;
+  margin: 1rem 5rem;
 
   .dice {
     --dice-dot-color: var(--color-primary);
@@ -250,15 +247,11 @@ table {
 </style>
 
 <template>
-  <div class="alert alert-info">
-    <p>Your username: <code @click="copy(game.username)">{{ game.username }}</code>.</p>
-    <p>Your room code: <code @click="copy(game.room)">{{ game.room }}</code>.</p>
-    <button @click="updateState(true)" class="btn btn-small">Update state</button>
-  </div>
+  <RoomInfo></RoomInfo>
   <table>
     <thead>
       <tr>
-        <th class="left">Room</th>
+        <th class="left">Players</th>
         <template v-for="(player, id) in game.game.players" :key="id">
           <th :class="{ active: id === game.game.currentPlayerIndex }">{{ player.username }}</th>
         </template>

@@ -14,8 +14,8 @@ const emit = defineEmits(["click"]);
     display: flex;
     justify-self: center;
     border-radius: 50%;
-    width: 80%;
-    height: 80%;
+    width: 90%;
+    height: 90%;
 
     &.filled {
       --color: var(--dice-dot-color, --color-primary);

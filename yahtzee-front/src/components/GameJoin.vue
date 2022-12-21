@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onBeforeMount } from "vue";
 import { categories, useGameStore } from "../stores/game.js";
 import { db } from "../utils/db";
 
@@ -9,6 +9,19 @@ const error = ref(null);
 const emit = defineEmits(["game"]);
 
 const game = useGameStore();
+
+function getRoomCode() {
+  if (location.hash.includes("room=")) {
+    const uriHash = new URLSearchParams(location.hash.split("#", 2)[1]);
+    location.hash = "";
+
+    game.$patch({
+      room: uriHash.get("room"),
+    });
+  }
+};
+
+getRoomCode();
 
 async function submit() {
   isLoading.value = true;
