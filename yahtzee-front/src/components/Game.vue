@@ -7,7 +7,7 @@ import Dice from "./Dice.vue";
 const game = useGameStore();
 
 const isRolling = ref(false);
-const isDiceToggling = ref(false); // TODO: delete?
+const isDiceToggling = ref(false);
 
 function copy(value) {
   navigator.clipboard.writeText(value);
@@ -17,11 +17,14 @@ async function updateState(force = false) {
   // skip updates when there is no active game
   if (!game.isInGame || game.room === null) return;
 
-  // skip updates when turn is ours
-  if (game.isMyTurn() && !force) return;
-
   const room = await db.get(game.room, { latest: true });
-  game.game = room;
+
+  // skip updates when turn is ours
+  if (game.isMyTurn() && !force) {
+    game.game._rev = room._rev;
+  } else {
+    game.game = room;
+  }
   return room;
 }
 
@@ -41,13 +44,14 @@ async function startGame() {
 }
 
 async function toggleDice(index) {
-  // if (isDiceToggling.value) return;
+  if (isDiceToggling.value) return;
   if (!game.isMyTurn() || game.game.rollStep === 0) return;
-  // isDiceToggling.value = true;
+  isDiceToggling.value = true;
+  await updateState(true);
   game.game.dices[index].keep = !game.game.dices[index].keep;
-  // await db.put(game.game).catch(async () => { await updateState(); });
+  await db.put(game.game).catch(async () => { await updateState(); });
   db.put(game.game).catch((e) => { console.warn("Unable to send update to toggle dice", { e }); });
-  // isDiceToggling.value = false;
+  isDiceToggling.value = false;
 }
 
 async function roll() {
