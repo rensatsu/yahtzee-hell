@@ -221,6 +221,7 @@ table {
 
   tbody tr:nth-child(even) {
     background-color: var(--color-information-bg);
+    color: var(--color-information);
   }
 }
 
@@ -264,9 +265,6 @@ table {
       </tr>
     </thead>
     <tbody>
-      <tr class="section">
-        <td :colspan="game.game.players.length + 1">Upper part</td>
-      </tr>
       <tr v-for="(description, category) in categoriesDescription.upperPart" :key="category">
         <td class="left">{{ description }}</td>
         <td v-for="(player, id) in game.game.players" :key="id" :class="{
@@ -283,7 +281,7 @@ table {
           </template>
         </td>
       </tr>
-      <tr>
+      <tr class="total">
         <td class="left">{{ categoriesDescription.bonus }}</td>
         <td v-for="(_, id) in game.game.players" :key="id" :class="{ active: game.getBonusPoints[id] >= 63 }">
           <template v-if="game.getBonusPoints[id] < 63">
@@ -293,9 +291,6 @@ table {
             35
           </template>
         </td>
-      </tr>
-      <tr class="section">
-        <td :colspan="Object.keys(game.game.players).length + 1">Bottom part</td>
       </tr>
       <tr v-for="(description, category) in categoriesDescription.bottomPart" :key="category">
         <td class="left">{{ description }}</td>
