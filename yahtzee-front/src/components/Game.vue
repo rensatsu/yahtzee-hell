@@ -45,13 +45,18 @@ async function startGame() {
 }
 
 async function toggleDice(index) {
+  // Skip toggle while we're still updating state
   if (isDiceToggling.value) return;
+  // Skip toggle when it's not our turn
   if (!game.isMyTurn() || game.game.rollStep === 0) return;
+
   isDiceToggling.value = true;
+
   await updateState(true);
+
   game.game.dices[index].keep = !game.game.dices[index].keep;
-  await db.put(game.game).catch(async () => { await updateState(); });
-  db.put(game.game).catch((e) => { console.warn("Unable to send update to toggle dice", { e }); });
+  await db.put(game.game).catch((e) => { console.warn("Unable to send update to toggle dice", { e }); });
+
   isDiceToggling.value = false;
 }
 

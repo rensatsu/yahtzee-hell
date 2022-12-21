@@ -16,9 +16,7 @@ export default defineConfig({
             "@": resolve(__dirname, "./src")
         }
     },
-    // allowNodeBuiltins: ["pouchdb", "pouchdb-browser", "pouchdb-utils"],
     define: {
-        global: "window",
-        // process: { env: {} }
+        global: "window", // Fix for PouchDB
     }
 });
