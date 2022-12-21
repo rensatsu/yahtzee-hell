@@ -7,7 +7,7 @@ import Dice from "./Dice.vue";
 const game = useGameStore();
 
 const isRolling = ref(false);
-const isDiceToggling = ref(false);
+const isDiceToggling = ref(false); // TODO: delete?
 
 function copy(value) {
   navigator.clipboard.writeText(value);
@@ -41,12 +41,13 @@ async function startGame() {
 }
 
 async function toggleDice(index) {
-  if (isDiceToggling.value) return;
+  // if (isDiceToggling.value) return;
   if (!game.isMyTurn() || game.game.rollStep === 0) return;
-  isDiceToggling.value = true;
+  // isDiceToggling.value = true;
   game.game.dices[index].keep = !game.game.dices[index].keep;
-  await db.put(game.game).catch(async () => { await updateState(); });
-  isDiceToggling.value = false;
+  // await db.put(game.game).catch(async () => { await updateState(); });
+  db.put(game.game).catch((e) => { console.warn("Unable to send update to toggle dice", { e }); });
+  // isDiceToggling.value = false;
 }
 
 async function roll() {
