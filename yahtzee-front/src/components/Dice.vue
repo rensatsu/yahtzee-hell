@@ -7,15 +7,15 @@ const emit = defineEmits(["click"]);
 .dots {
   display: grid;
   grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-  padding: 2rem;
+  padding: 1.5rem;
   gap: 1rem;
 
   .dot {
     display: flex;
     justify-self: center;
     border-radius: 50%;
-    width: 90%;
-    height: 90%;
+    width: 100%;
+    height: 100%;
 
     &.filled {
       --color: var(--dice-dot-color, --color-primary);
