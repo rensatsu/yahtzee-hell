@@ -25,6 +25,7 @@ async function updateState(force = false) {
   } else {
     game.game = room;
   }
+
   return room;
 }
 
@@ -34,7 +35,7 @@ async function startGame() {
     return;
   }
 
-  const room = await db.get(game.room);
+  const room = await db.get(game.room, { latest: true });
   game.game = room;
   game.game.isStarted = true;
   game.game.round += 1;
@@ -77,6 +78,7 @@ async function roll() {
   game.game.dices = await rolledDices.json();
   isRolling.value = false;
 
+  await updateState();
   await db.put(game.game);
 }
 
@@ -102,8 +104,9 @@ async function selectCategory(player, category) {
 
   const points = calculatePoints(getDiceValues(), player.categories);
 
-  player.categories[category] = (player.categories[category] ?? 0) + points[category];
+  await updateState();
 
+  player.categories[category] = (player.categories[category] ?? 0) + points[category];
   game.setNextPlayer();
 
   await db.put(game.game);
