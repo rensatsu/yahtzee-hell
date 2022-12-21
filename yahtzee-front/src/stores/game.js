@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import { FIXED_POINTS } from "../utils/scoring";
 
 export const categories = {
     ones: null,
@@ -73,8 +74,8 @@ export const useGameStore = defineStore("game", {
                     return acc;
                 }, 0);
 
-                if (state.getBonusPoints[playerId] >= 63) {
-                    count += 35;
+                if (state.getBonusPoints[playerId] >= FIXED_POINTS.upperBonusThreshold) {
+                    count += FIXED_POINTS.upperBonus;
                 }
 
                 return count;

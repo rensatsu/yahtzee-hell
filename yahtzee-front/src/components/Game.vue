@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onBeforeUnmount } from "vue";
-import { useGameStore } from "../stores/game.js";
+import { categories, useGameStore } from "../stores/game.js";
 import { db } from "../utils/db.js";
 import { calculatePoints, FIXED_POINTS } from "../utils/scoring.js";
 import Dice from "./Dice.vue";
@@ -9,6 +9,7 @@ const game = useGameStore();
 
 const isRolling = ref(false);
 const isDiceToggling = ref(false);
+const categoriesCount = ref(Object.keys(categories).length);
 
 async function updateState(force = false) {
   // skip updates when there is no active game
@@ -153,11 +154,14 @@ const categoriesDescription = ref({
 
 <style lang="scss">
 table {
-  border: 1px solid var(--control-color-border);
   table-layout: fixed;
   border-collapse: collapse;
   border-radius: var(--control-border-radius);
   width: 100%;
+
+  &:not(.no-border) {
+    border: 1px solid var(--control-color-border);
+  }
 
   thead tr {
     background: var(--color-primary);
@@ -247,7 +251,24 @@ table {
 </style>
 
 <template>
-  <RoomInfo></RoomInfo>
+  <RoomInfo @update="updateState(true)"></RoomInfo>
+  <div class="panel panel-info" v-if="game.game.round >= categoriesCount">
+    <h2 class="panel-heading">Game over</h2>
+    <table class="no-border">
+      <thead>
+        <tr>
+          <th class="left">Username</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(player, id) in game.game.players" :key="player.id">
+          <td class="left">{{ player.username }}</td>
+          <td>{{ game.getTotalPoints[id] }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
   <table>
     <thead>
       <tr>
