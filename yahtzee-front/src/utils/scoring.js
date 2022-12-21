@@ -148,6 +148,8 @@ function calculateStraight(dices, amount, result) {
  * @returns
  */
 function calculatePoints(dices, categories) {
+    console.log("calculatePoints", { dices, categories });
+
     const isJoker = categories.yahtzee !== null && categories.yahtzee !== 0;
 
     return {
