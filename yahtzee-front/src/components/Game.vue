@@ -13,8 +13,12 @@ function copy(value) {
   navigator.clipboard.writeText(value);
 }
 
-async function updateState() {
+async function updateState(force = false) {
+  // skip updates when there is no active game
   if (!game.isInGame || game.room === null) return;
+
+  // skip updates when turn is ours
+  if (game.isMyTurn() && !force) return;
 
   const room = await db.get(game.room, { latest: true });
   game.game = room;
@@ -107,7 +111,7 @@ function getDiceValues() {
 const changesListener = db.changes({
   since: "now",
   live: true,
-}).on("change", updateState);
+}).on("change", () => updateState());
 
 onBeforeUnmount(() => {
   changesListener.cancel();
@@ -235,7 +239,7 @@ table {
   <div class="alert alert-info">
     <p>Your username: <code @click="copy(game.username)">{{ game.username }}</code>.</p>
     <p>Your room code: <code @click="copy(game.room)">{{ game.room }}</code>.</p>
-    <button @click="updateState" class="btn btn-small">Update state</button>
+    <button @click="updateState(true)" class="btn btn-small">Update state</button>
   </div>
   <table>
     <thead>
