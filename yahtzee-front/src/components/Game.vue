@@ -2,7 +2,7 @@
 import { ref, onBeforeUnmount } from "vue";
 import { useGameStore } from "../stores/game.js";
 import { db } from "../utils/db.js";
-import { calculatePoints } from "../utils/scoring.js";
+import { calculatePoints, FIXED_POINTS } from "../utils/scoring.js";
 import Dice from "./Dice.vue";
 const game = useGameStore();
 
@@ -283,12 +283,12 @@ table {
       </tr>
       <tr class="total">
         <td class="left">{{ categoriesDescription.bonus }}</td>
-        <td v-for="(_, id) in game.game.players" :key="id" :class="{ active: game.getBonusPoints[id] >= 63 }">
-          <template v-if="game.getBonusPoints[id] < 63">
-            {{ game.getBonusPoints[id] }} / 63
+        <td v-for="(_, id) in game.game.players" :key="id" :class="{ active: game.getBonusPoints[id] >= FIXED_POINTS.upperBonusThreshold }">
+          <template v-if="game.getBonusPoints[id] < FIXED_POINTS.upperBonusThreshold">
+            {{ game.getBonusPoints[id] }} / {{ FIXED_POINTS.upperBonusThreshold }}
           </template>
           <template v-else>
-            35
+            {{ FIXED_POINTS.upperBonus }}
           </template>
         </td>
       </tr>
