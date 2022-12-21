@@ -1,4 +1,22 @@
 $breakpoint-mobile: 640px !default;
 $breakpoint-desktop: 960px !default;
 
-@import "@rensatsu/blueberry-css/scss/blueberry.scss";
+// @import "@rensatsu/blueberry-css/scss/blueberry.scss";
+
+// Blueberry CSS Core
+@import "@rensatsu/blueberry-css/scss/blueberry/core/utils";
+@import "@rensatsu/blueberry-css/scss/blueberry/core/variables";
+@import "@rensatsu/blueberry-css/scss/blueberry/core/functions";
+@import "@rensatsu/blueberry-css/scss/blueberry/core/core";
+// @import "@rensatsu/blueberry-css/scss/blueberry/core/dark-mode";
+
+// Additional Components
+@import "@rensatsu/blueberry-css/scss/blueberry/components/alert";
+@import "@rensatsu/blueberry-css/scss/blueberry/components/controls";
+// @import "@rensatsu/blueberry-css/scss/blueberry/components/error-page";
+@import "@rensatsu/blueberry-css/scss/blueberry/components/grid";
+// @import "@rensatsu/blueberry-css/scss/blueberry/components/lists";
+@import "@rensatsu/blueberry-css/scss/blueberry/components/panel";
+// @import "@rensatsu/blueberry-css/scss/blueberry/components/progress";
+// @import "@rensatsu/blueberry-css/scss/blueberry/components/scrolltop";
+@import "@rensatsu/blueberry-css/scss/blueberry/components/text";
